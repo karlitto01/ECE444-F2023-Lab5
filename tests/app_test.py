@@ -1,4 +1,4 @@
-import os
+# import os
 import pytest
 import json
 from pathlib import Path
@@ -19,6 +19,7 @@ def client():
         db.create_all()  # setup
         yield app.test_client()  # tests run here
         db.drop_all()  # teardown
+
 
 def login(client, username, password):
     """Login helper function"""
@@ -75,11 +76,17 @@ def test_messages(client):
     assert b"&lt;Hello&gt;" in rv.data
     assert b"<strong>HTML</strong> allowed here" in rv.data
 
+
 def test_delete_message(client):
     """Ensure the messages are being deleted"""
-    rv = client.get('/delete/1')
+    rv = client.get("/delete/1")
+    data = json.loads(rv.data)
+    assert data["status"] == 0
+    login(client, app.config["USERNAME"], app.config["PASSWORD"])
+    rv = client.get("/delete/1")
     data = json.loads(rv.data)
     assert data["status"] == 1
+
 
 def test_search_entries(client):
     # Ensure that a user is logged in (modify this part if needed)
@@ -92,6 +99,6 @@ def test_search_entries(client):
 
     # Simulate a search request with a valid query
     query = "Test Entry"
-    rv = client.get(f"/search/", data={"query": query})
+    rv = client.get("/search/", data={"query": query})
     # Assert that the response status code is 200 (OK)
     assert rv.status_code == 200
