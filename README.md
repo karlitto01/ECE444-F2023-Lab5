@@ -1,5 +1,8 @@
 # ECE444-F2023-Lab5 (Test-Driven Development)  
 
+## Unit test in Project 1:
+I set up the `web_app/tests` directory and the `views_test.py` file, then wrote the **`test_home()`** function (in `/web_app/tests/views_test.py`). 
+
 ## Pros and Cons of TDD:  
 
 ### Pros of Test-Driven Development (TDD):  
