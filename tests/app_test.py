@@ -2,8 +2,8 @@ import os
 import pytest
 import json
 from pathlib import Path
-
-from project.app import app, init_db
+from project.app import app, db
+from project.models import Post  # Import your Post model here
 
 TEST_DB = "test.db"
 
@@ -13,11 +13,12 @@ def client():
     BASE_DIR = Path(__file__).resolve().parent.parent
     app.config["TESTING"] = True
     app.config["DATABASE"] = BASE_DIR.joinpath(TEST_DB)
+    app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{BASE_DIR.joinpath(TEST_DB)}"
 
-    init_db() # setup
-    yield app.test_client() # tests run here
-    init_db() # teardown
-
+    with app.app_context():
+        db.create_all()  # setup
+        yield app.test_client()  # tests run here
+        db.drop_all()  # teardown
 
 def login(client, username, password):
     """Login helper function"""
@@ -79,3 +80,18 @@ def test_delete_message(client):
     rv = client.get('/delete/1')
     data = json.loads(rv.data)
     assert data["status"] == 1
+
+def test_search_entries(client):
+    # Ensure that a user is logged in (modify this part if needed)
+    login(client, app.config["USERNAME"], app.config["PASSWORD"])
+
+    # Insert a test entry directly into the database
+    test_entry = Post(title="Test Entry", text="This is a test entry.")
+    db.session.add(test_entry)
+    db.session.commit()
+
+    # Simulate a search request with a valid query
+    query = "Test Entry"
+    rv = client.get(f"/search/", data={"query": query})
+    # Assert that the response status code is 200 (OK)
+    assert rv.status_code == 200
